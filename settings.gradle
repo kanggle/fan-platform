@@ -1,4 +1,4 @@
-rootProject.name = 'monorepo-lab'
+rootProject.name = 'fan-platform'
 
 // Shared libraries (at repo root)
 include(
@@ -61,14 +61,14 @@ include(
 
 // Project: fan-platform
 include(
-    'projects:fan-platform:apps:gateway-service',
-    'projects:fan-platform:apps:community-service',
-    'projects:fan-platform:apps:artist-service',
+    'apps:gateway-service',
+    'apps:community-service',
+    'apps:artist-service',
     // TASK-FAN-BE-009: membership-service — subscription state machine + PG mock
     // + internal access-check (remote counterpart of community MembershipChecker)
     // + outbox lifecycle events. Layered, Postgres fanplatform_membership.
-    'projects:fan-platform:apps:membership-service',
-    'projects:fan-platform:tests:e2e'
+    'apps:membership-service',
+    'tests:e2e'
 )
 
 // Project: scm-platform

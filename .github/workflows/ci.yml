@@ -39,7 +39,7 @@ jobs:
   #   wms        projects/wms-platform/**
   #   ecommerce  projects/ecommerce-microservices-platform/**
   #   iam        projects/iam-platform/**
-  #   fan        projects/fan-platform/**
+  #   fan        **
   #   scm        projects/scm-platform/**
   #   contracts  projects/*/specs/contracts/**
   #              → force-full e2e: cross-service consumer breakage gate
@@ -171,9 +171,9 @@ jobs:
               - '!projects/iam-platform/tasks/**'
               - '!projects/iam-platform/**/*.md'
             fan:
-              - 'projects/fan-platform/**'
-              - '!projects/fan-platform/tasks/**'
-              - '!projects/fan-platform/**/*.md'
+              - '**'
+              - '!tasks/**'
+              - '!**/*.md'
             scm:
               - 'projects/scm-platform/**'
               - '!projects/scm-platform/tasks/**'
@@ -339,11 +339,11 @@ jobs:
         # below runs them with Docker.
         run: >-
           ./gradlew
-          :projects:fan-platform:apps:gateway-service:check
-          :projects:fan-platform:apps:community-service:check
-          :projects:fan-platform:apps:artist-service:check
-          :projects:fan-platform:apps:membership-service:check
-          :projects:fan-platform:tests:e2e:check
+          :apps:gateway-service:check
+          :apps:community-service:check
+          :apps:artist-service:check
+          :apps:membership-service:check
+          :tests:e2e:check
           --no-daemon --stacktrace
 
       - name: Build and check scm-platform backend (Docker-free)
@@ -551,9 +551,9 @@ jobs:
       - name: Build fan-platform boot jars
         run: >-
           ./gradlew
-          :projects:fan-platform:apps:gateway-service:bootJar
-          :projects:fan-platform:apps:community-service:bootJar
-          :projects:fan-platform:apps:artist-service:bootJar
+          :apps:gateway-service:bootJar
+          :apps:community-service:bootJar
+          :apps:artist-service:bootJar
           --no-daemon --stacktrace
 
       - name: Upload fan-platform boot jars
@@ -561,13 +561,13 @@ jobs:
         with:
           name: fan-platform-boot-jars
           # upload-artifact@v4 strips the longest common prefix
-          # (`projects/fan-platform/apps/`) so the artifact root contains
+          # (`apps/`) so the artifact root contains
           # `<service>/build/libs/<service>.jar`. The fan-platform-e2e job
           # restores them to their canonical locations.
           path: |
-            projects/fan-platform/apps/gateway-service/build/libs/gateway-service.jar
-            projects/fan-platform/apps/community-service/build/libs/community-service.jar
-            projects/fan-platform/apps/artist-service/build/libs/artist-service.jar
+            apps/gateway-service/build/libs/gateway-service.jar
+            apps/community-service/build/libs/community-service.jar
+            apps/artist-service/build/libs/artist-service.jar
           retention-days: 1
 
   scm-platform-boot-jars:
@@ -653,7 +653,7 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: |
             projects/ecommerce-microservices-platform/pnpm-lock.yaml
-            projects/fan-platform/pnpm-lock.yaml
+            pnpm-lock.yaml
             projects/platform-console/apps/console-web/pnpm-lock.yaml
 
       - name: Install dependencies (ecommerce)
@@ -729,7 +729,7 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: |
             projects/ecommerce-microservices-platform/pnpm-lock.yaml
-            projects/fan-platform/pnpm-lock.yaml
+            pnpm-lock.yaml
             projects/platform-console/apps/console-web/pnpm-lock.yaml
 
       - name: Install dependencies (ecommerce)
@@ -793,8 +793,8 @@ jobs:
           path: |
             projects/ecommerce-microservices-platform/apps/web-store/playwright-report-smoke/
             projects/ecommerce-microservices-platform/apps/web-store/test-results-smoke/
-            projects/fan-platform/web/fan-platform-web/playwright-report-smoke/
-            projects/fan-platform/web/fan-platform-web/test-results-smoke/
+            web/fan-platform-web/playwright-report-smoke/
+            web/fan-platform-web/test-results-smoke/
             projects/platform-console/apps/console-web/playwright-report-smoke/
             projects/platform-console/apps/console-web/test-results-smoke/
           retention-days: 7
@@ -972,9 +972,9 @@ jobs:
       - name: Run fan-platform integration suites
         run: >-
           ./gradlew
-          :projects:fan-platform:apps:community-service:integrationTest
-          :projects:fan-platform:apps:artist-service:integrationTest
-          :projects:fan-platform:apps:membership-service:integrationTest
+          :apps:community-service:integrationTest
+          :apps:artist-service:integrationTest
+          :apps:membership-service:integrationTest
           --no-daemon --stacktrace
 
       - name: Upload fan integration test reports on failure
@@ -983,8 +983,8 @@ jobs:
         with:
           name: fan-integration-test-reports
           path: |
-            projects/fan-platform/apps/*/build/reports/tests/integrationTest/
-            projects/fan-platform/apps/*/build/test-results/integrationTest/
+            apps/*/build/reports/tests/integrationTest/
+            apps/*/build/test-results/integrationTest/
           retention-days: 7
 
   iam-platform-e2e-smoke:
@@ -1305,7 +1305,7 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: |
             projects/ecommerce-microservices-platform/pnpm-lock.yaml
-            projects/fan-platform/pnpm-lock.yaml
+            pnpm-lock.yaml
 
       - name: Install dependencies (ecommerce)
         working-directory: projects/ecommerce-microservices-platform
@@ -1483,21 +1483,21 @@ jobs:
         # actions/upload-artifact@v4 strips the longest common prefix when
         # multiple paths are uploaded. The fan-platform-boot-jars artifact
         # therefore contains `<service>/build/libs/<service>.jar` (with
-        # `projects/fan-platform/apps/` stripped). Move them back to their
+        # `apps/` stripped). Move them back to their
         # canonical locations so the gateway/community/artist Dockerfiles
         # COPY the right path during the docker build below, AND so
         # FanPlatformE2ETestBase's locateOptionalJar fallback can resolve
         # them when the dev-path system properties are unset.
         run: |
-          mkdir -p projects/fan-platform/apps/gateway-service/build/libs/
-          mkdir -p projects/fan-platform/apps/community-service/build/libs/
-          mkdir -p projects/fan-platform/apps/artist-service/build/libs/
+          mkdir -p apps/gateway-service/build/libs/
+          mkdir -p apps/community-service/build/libs/
+          mkdir -p apps/artist-service/build/libs/
           mv artifact-staging-fan/gateway-service/build/libs/gateway-service.jar \
-             projects/fan-platform/apps/gateway-service/build/libs/gateway-service.jar
+             apps/gateway-service/build/libs/gateway-service.jar
           mv artifact-staging-fan/community-service/build/libs/community-service.jar \
-             projects/fan-platform/apps/community-service/build/libs/community-service.jar
+             apps/community-service/build/libs/community-service.jar
           mv artifact-staging-fan/artist-service/build/libs/artist-service.jar \
-             projects/fan-platform/apps/artist-service/build/libs/artist-service.jar
+             apps/artist-service/build/libs/artist-service.jar
 
       - name: Verify Docker (Testcontainers prerequisite)
         run: docker info
@@ -1507,14 +1507,14 @@ jobs:
         # rationale (Docker 28 + Testcontainers ImageFromDockerfile hang).
         run: |
           docker build -t fan-platform-gateway-service:e2e \
-            -f projects/fan-platform/apps/gateway-service/Dockerfile \
-            projects/fan-platform/apps/gateway-service/
+            -f apps/gateway-service/Dockerfile \
+            apps/gateway-service/
           docker build -t fan-platform-community-service:e2e \
-            -f projects/fan-platform/apps/community-service/Dockerfile \
-            projects/fan-platform/apps/community-service/
+            -f apps/community-service/Dockerfile \
+            apps/community-service/
           docker build -t fan-platform-artist-service:e2e \
-            -f projects/fan-platform/apps/artist-service/Dockerfile \
-            projects/fan-platform/apps/artist-service/
+            -f apps/artist-service/Dockerfile \
+            apps/artist-service/
 
       - name: Run fan-platform live-trio e2e smoke suite
         # ADR-MONO-010 D3 — PR-time runs the @Tag("smoke") subset only via
@@ -1524,10 +1524,10 @@ jobs:
         # dev convenience.
         run: >-
           ./gradlew
-          :projects:fan-platform:tests:e2e:e2eSmokeTest
-          -x :projects:fan-platform:apps:gateway-service:bootJar
-          -x :projects:fan-platform:apps:community-service:bootJar
-          -x :projects:fan-platform:apps:artist-service:bootJar
+          :tests:e2e:e2eSmokeTest
+          -x :apps:gateway-service:bootJar
+          -x :apps:community-service:bootJar
+          -x :apps:artist-service:bootJar
           -Dfan.e2e.gatewayImage=fan-platform-gateway-service:e2e
           -Dfan.e2e.communityImage=fan-platform-community-service:e2e
           -Dfan.e2e.artistImage=fan-platform-artist-service:e2e
@@ -1539,8 +1539,8 @@ jobs:
         with:
           name: fan-platform-e2e-test-reports
           path: |
-            projects/fan-platform/tests/e2e/build/reports/tests/e2eSmokeTest/
-            projects/fan-platform/tests/e2e/build/test-results/e2eSmokeTest/
+            tests/e2e/build/reports/tests/e2eSmokeTest/
+            tests/e2e/build/test-results/e2eSmokeTest/
           retention-days: 7
 
   scm-platform-e2e:
